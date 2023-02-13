@@ -12,5 +12,5 @@ serde = {version = "1.0", optional = true}
 bincode = '*'
 
 [features]
-default = ["with_serde"]
+default = []
 with_serde = ["serde"]
