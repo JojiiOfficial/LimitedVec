@@ -11,7 +11,7 @@ pub struct LimitedVec<T, const N: usize>([Option<T>; N]);
 
 impl<T, const N: usize> LimitedVec<T, N>
 where
-    T: Default + Copy,
+    T: Copy,
 {
     /// Creates a new limited vector
     #[inline]
