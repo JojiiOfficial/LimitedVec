@@ -155,6 +155,19 @@ impl<T, const N: usize> FromIterator<T> for LimitedVec<T, N> {
     }
 }
 
+impl<T, const N: usize> Extend<T> for LimitedVec<T, N> {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        let start_idx = self.last_idx().map(|i| i + 1).unwrap_or(0);
+        for (pos, i) in iter.into_iter().enumerate() {
+            let dst_idx = start_idx + pos;
+            if dst_idx >= N {
+                panic!("Can't push more elements than LimitedVec capacity!");
+            }
+            self.0[dst_idx] = Some(i);
+        }
+    }
+}
+
 impl<T: std::fmt::Debug, const N: usize> std::fmt::Debug for LimitedVec<T, N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_list().entries(self.iter()).finish()
@@ -276,6 +289,22 @@ mod tests {
             lvec.iter().collect::<Vec<_>>(),
             src_vec.iter().collect::<Vec<_>>()
         );
+    }
+
+    #[test]
+    fn test_extend() {
+        const SIZE: usize = 50;
+        let src_vec = (0..7).collect::<Vec<usize>>();
+        let ext_data = (7..25).collect::<Vec<_>>();
+
+        let mut lvec = LimitedVec::<_, SIZE>::from_iter(src_vec.iter().copied());
+        lvec.extend(ext_data.iter().copied());
+        let expected = src_vec
+            .iter()
+            .copied()
+            .chain(ext_data.iter().copied())
+            .collect::<Vec<_>>();
+        assert_eq!(lvec.iter().copied().collect::<Vec<_>>(), expected);
     }
 
     #[cfg(feature = "with_serde")]
